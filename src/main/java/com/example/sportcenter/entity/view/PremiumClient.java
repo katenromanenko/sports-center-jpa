@@ -1,21 +1,23 @@
-package com.example.sportcenter.entity;
+package com.example.sportcenter.entity.view;
 
+import com.example.sportcenter.entity.Address;
+import com.example.sportcenter.entity.ClientStatus;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.Where;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
 @Table(name = "clients")
+@Where(clause = "status = 'PREMIUM'")
 @Getter @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class Client {
-
+public class PremiumClient {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "first_name", nullable = false, length = 80)
@@ -24,10 +26,9 @@ public class Client {
     @Column(name = "last_name", nullable = false, length = 80)
     private String lastName;
 
-    @Column(nullable = false)
     private Integer age;
 
-    @Column(name = "phone", nullable = false, length = 32, unique = true)
+    @Column(length = 32)
     private String phone;
 
     @Column(name = "last_visit")
@@ -39,14 +40,8 @@ public class Client {
 
     @Column(name = "total_spent", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalSpent;
-    
+
     @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "city",        column = @Column(name = "addr_city",        length = 80)),
-            @AttributeOverride(name = "street",      column = @Column(name = "addr_street",      length = 120)),
-            @AttributeOverride(name = "houseNumber", column = @Column(name = "addr_house_no",    length = 16)),
-            @AttributeOverride(name = "postalCode",  column = @Column(name = "addr_postal_code", length = 12))
-    })
     private Address address;
 }
 

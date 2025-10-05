@@ -1,10 +1,10 @@
 // src/main/java/com/example/sportcenter/util/JPAUtil.java
-package com.example.sportcenter.util;
+package com.example.sportcenter.config;
 
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 
-public class JPAUtil {
+public class JpaConfig {
     private static final EntityManagerFactory EMF =
             Persistence.createEntityManagerFactory("sportsPU");
     public static EntityManagerFactory getEmf() { return EMF; }

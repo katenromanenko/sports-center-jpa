@@ -1,9 +1,11 @@
 package com.example.sportcenter;
 
-import com.example.sportcenter.entity.Client;
-import com.example.sportcenter.entity.ClientStatus;
+import com.example.sportcenter.entity.*;
+import com.example.sportcenter.repository.session.ClientSessionRepository;
+import com.example.sportcenter.repository.session.FacilitySessionRepository;
+import com.example.sportcenter.repository.session.ServiceOfferSessionRepository;
 import com.example.sportcenter.service.ClientService;
-import com.example.sportcenter.util.JPAUtil;
+import com.example.sportcenter.config.JpaConfig;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -34,20 +36,48 @@ public class MainApp {
         for (Client c : seeds) {
             try {
                 service.add(c);
-                System.out.println("Saved id=" + c.getId() + " (" + c.getFirstName() + " " + c.getLastName() + ")");
+                System.out.println("Сохранён id=" + c.getId() + " (" + c.getFirstName() + " " + c.getLastName() + ")");
             } catch (Exception e) {
-                System.out.println("Skip (maybe duplicate phone): " + c.getPhone());
+                System.out.println("Пропускаю (возможно, дубликат телефона): " + c.getPhone());
             }
         }
 
-        System.out.println("=== ALL CLIENTS ===");
+        System.out.println("=== ВСЕ КЛИЕНТЫ ===");
         service.getAll().forEach(c -> System.out.printf(
-                "%d | %s %s | %s | age=%d | phone=%s | lastVisit=%s | total=%.2f%n",
+                "%d | %s %s | статус=%s | возраст=%d | телефон=%s | последний визит=%s | потрачено=%.2f%n",
                 c.getId(), c.getFirstName(), c.getLastName(), c.getStatus(),
                 c.getAge(), c.getPhone(), c.getLastVisit(), c.getTotalSpent()
         ));
 
-        JPAUtil.shutdown();
+        JpaConfig.shutdown();
+
+        var csr = new ClientSessionRepository();
+        System.out.println("Клиент #4 через Session: " + csr.findById(4L).map(Client::getLastName).orElse("не найден"));
+
+        var srepo = new ServiceOfferSessionRepository();
+        srepo.add(ServiceOffer.builder().name("Теннис").price(new BigDecimal("25.00")).build());
+        srepo.add(ServiceOffer.builder().name("Плавание").price(new BigDecimal("18.50")).build());
+        srepo.add(ServiceOffer.builder().name("Футбол").price(new BigDecimal("30.00")).build());
+        System.out.println("Услуги добавлены через Session");
+
+        var fRepo = new FacilitySessionRepository();
+
+        var hall1 = fRepo.findByIdentityNumber("GZ-003").orElseGet(() ->
+                fRepo.add(Facility.builder()
+                        .name("Тренажёрный зал")
+                        .identityNumber("GZ-003")
+                        .maxCapacity(15)
+                        .status(FacilityStatus.ACTIVE)
+                        .hourRate(new BigDecimal("12.00"))
+                        .build())
+        );
+        System.out.println("Помещение id=" + hall1.getId() + ", инв. номер=" + hall1.getIdentityNumber());
+
+        var copy = fRepo.addCopyWithNewIdentityNumber(hall1.getId(), "GZ-004");
+        System.out.println("Скопированное помещение id=" + copy.getId() + ", инв. номер=" + copy.getIdentityNumber());
+
+        fRepo.updateHourRate(hall1.getId(), new BigDecimal("15.00"));
+        System.out.println("Стоимость аренды обновлена для id=" + hall1.getId());
     }
 }
 

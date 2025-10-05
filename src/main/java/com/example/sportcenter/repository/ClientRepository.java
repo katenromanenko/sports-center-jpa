@@ -9,7 +9,6 @@ import java.util.Optional;
 public interface ClientRepository {
     Client save(Client c);
     List<Client> findAll();
-    Optional<Client> findById(Long id);
     void deleteById(Long id);
     void updateStatus(Long id, ClientStatus newStatus);
 }

@@ -2,6 +2,8 @@ package com.example.sportcenter.config;
 
 import com.example.sportcenter.entity.Client;
 import org.hibernate.SessionFactory;
+import com.example.sportcenter.entity.Facility;
+import com.example.sportcenter.entity.ServiceOffer;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 
@@ -14,6 +16,8 @@ public class HibernateSessionConfig {
                 .build();
         return new MetadataSources(registry)
                 .addAnnotatedClass(Client.class)
+                .addAnnotatedClass(ServiceOffer.class)
+                .addAnnotatedClass(Facility.class)
                 .buildMetadata()
                 .buildSessionFactory();
     }

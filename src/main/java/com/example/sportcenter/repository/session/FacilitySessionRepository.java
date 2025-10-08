@@ -28,27 +28,25 @@ public class FacilitySessionRepository {
         try (var session = HibernateSessionConfig.getSessionFactory().openSession()) {
             var tx = session.beginTransaction();
 
-            var src = session.get(Facility.class, sourceId); // managed
-            if (src == null) {
-                tx.rollback();
-                throw new IllegalArgumentException("Не найдено помещение: id=" + sourceId);
+            try {
+                var src = session.get(Facility.class, sourceId); // managed
+                if (src == null) {
+                    throw new IllegalArgumentException("Не найдено помещение: id=" + sourceId);
+                }
 
-            }
+            session.detach(src);
 
-            session.evict(src);
+            src.setId(null);
+            src.setIdentityNumber(newIdentityNumber);
 
-            var copy = Facility.builder()
-                    .name(src.getName())
-                    .identityNumber(newIdentityNumber)
-                    .maxCapacity(src.getMaxCapacity())
-                    .status(src.getStatus())
-                    .hourRate(src.getHourRate())
-                    .build();
-
-            session.persist(copy);
+            session.persist(src);
             tx.commit();
 
-            return copy;
+            return src;
+            } catch (RuntimeException e) {
+                tx.rollback();
+                throw e;
+            }
         }
     }
 

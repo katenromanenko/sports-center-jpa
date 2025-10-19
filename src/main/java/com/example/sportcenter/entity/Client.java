@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "clients")
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -35,5 +38,9 @@ public class Client {
             @AttributeOverride(name = "postalCode",  column = @Column(name = "addr_postal_code", length = 12))
     })
     private Address address;
+
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Reservation> reservations = new ArrayList<>();
+
 }
 

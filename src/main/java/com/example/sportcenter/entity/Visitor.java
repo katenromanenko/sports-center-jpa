@@ -6,6 +6,8 @@ import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "visitors")
@@ -31,5 +33,9 @@ public class Visitor extends Client {
 
     @Column(name = "total_spent", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalSpent;
+
+    @OneToMany(mappedBy = "visitor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Visit> visits = new ArrayList<>();
+
 }
 

@@ -3,6 +3,8 @@ package com.example.sportcenter.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "service_offers")
@@ -16,5 +18,8 @@ public class ServiceOffer {
 
     @Column(nullable=false, precision=12, scale=2)
     private BigDecimal price;
+
+    @OneToMany(mappedBy = "serviceOffer", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Facility> facilities = new ArrayList<>();
 }
 

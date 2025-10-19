@@ -12,6 +12,9 @@
         <class>com.example.sportcenter.entity.Employee</class>
         <class>com.example.sportcenter.entity.ServiceOffer</class>
         <class>com.example.sportcenter.entity.Facility</class>
+        <class>com.example.sportcenter.entity.Visit</class>
+        <class>com.example.sportcenter.entity.Reservation</class>
+
 
         <properties>
             <property name="jakarta.persistence.jdbc.driver"   value="org.postgresql.Driver"/>

@@ -2,8 +2,12 @@ package com.example.sportcenter.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "facilities")
@@ -27,4 +31,13 @@ public class Facility {
 
     @Column(name="hour_rate", nullable=false, precision=12, scale=2)
     private BigDecimal hourRate;
+
+    @ManyToOne
+    @JoinColumn(name = "service_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private ServiceOffer serviceOffer;
+
+    @OneToMany(mappedBy = "facility", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Reservation> reservations = new ArrayList<>();
+
 }

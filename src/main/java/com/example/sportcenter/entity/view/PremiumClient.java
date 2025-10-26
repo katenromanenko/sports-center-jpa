@@ -11,7 +11,6 @@ import org.hibernate.annotations.Where;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-@Entity
 @Table(name = "clients")
 @Where(clause = "status = 'PREMIUM'")
 @Getter @Setter

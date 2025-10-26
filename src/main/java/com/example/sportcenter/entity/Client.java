@@ -2,16 +2,16 @@ package com.example.sportcenter.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "clients")
-@Getter @Setter
+@Inheritance(strategy = InheritanceType.JOINED)
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class Client {
 
     @Id
@@ -24,21 +24,8 @@ public class Client {
     @Column(name = "last_name", nullable = false, length = 80)
     private String lastName;
 
-    @Column(nullable = false)
-    private Integer age;
-
-    @Column(name = "phone", nullable = false, length = 32, unique = true)
-    private String phone;
-
-    @Column(name = "last_visit")
-    private LocalDate lastVisit;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 32)
-    private ClientStatus status;
-
-    @Column(name = "total_spent", nullable = false, precision = 12, scale = 2)
-    private BigDecimal totalSpent;
+    @Column(name = "birth_year", nullable = false)
+    private Integer birthYear;
     
     @Embedded
     @AttributeOverrides({

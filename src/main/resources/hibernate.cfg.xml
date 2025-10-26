@@ -12,7 +12,7 @@
         <property name="hibernate.connection.password">postgres</property>
 
         <!-- данные сохраняются между перезапусками -->
-        <property name="hibernate.hbm2ddl.auto">update</property>
+        <property name="hibernate.hbm2ddl.auto">create</property>
 
         <!-- логи -->
         <property name="hibernate.show_sql">true</property>
@@ -21,8 +21,11 @@
         <property name="hibernate.current_session_context_class">thread</property>
 
         <mapping class="com.example.sportcenter.entity.Client"/>
+        <mapping class="com.example.sportcenter.entity.Visitor"/>
+        <mapping class="com.example.sportcenter.entity.Employee"/>
         <mapping class="com.example.sportcenter.entity.ServiceOffer"/>
         <mapping class="com.example.sportcenter.entity.Facility"/>
+
 
     </session-factory>
 </hibernate-configuration>

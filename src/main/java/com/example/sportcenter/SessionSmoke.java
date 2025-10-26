@@ -7,7 +7,6 @@ import org.hibernate.Transaction;
 
 public class SessionSmoke {
     public static void main(String[] args) {
-        // Открываем сессию и читаем клиента по id (если нет такого id — будет null)
         try (Session session = HibernateSessionConfig.getSessionFactory().openSession()) {
             Transaction tx = session.beginTransaction();
 

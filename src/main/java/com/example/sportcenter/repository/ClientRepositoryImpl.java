@@ -3,6 +3,7 @@ package com.example.sportcenter.repository;
 import com.example.sportcenter.config.JpaConfig;
 import com.example.sportcenter.entity.Client;
 import com.example.sportcenter.entity.ClientStatus;
+import com.example.sportcenter.entity.Visitor;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 
@@ -59,10 +60,12 @@ public class ClientRepositoryImpl implements ClientRepository {
             EntityTransaction tx = em.getTransaction();
             try {
                 tx.begin();
+
                 Client c = em.find(Client.class, id);
-                if (c != null) {
-                    c.setStatus(newStatus);
+                if (c instanceof Visitor v) {
+                    v.setStatus(newStatus);
                 }
+
                 tx.commit();
             } catch (RuntimeException e) {
                 if (tx.isActive()) tx.rollback();
@@ -70,6 +73,7 @@ public class ClientRepositoryImpl implements ClientRepository {
             }
         }
     }
+
 }
 
 

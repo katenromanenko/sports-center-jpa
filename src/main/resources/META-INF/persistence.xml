@@ -8,6 +8,10 @@
     <persistence-unit name="sportsPU" transaction-type="RESOURCE_LOCAL">
 
         <class>com.example.sportcenter.entity.Client</class>
+        <class>com.example.sportcenter.entity.Visitor</class>
+        <class>com.example.sportcenter.entity.Employee</class>
+        <class>com.example.sportcenter.entity.ServiceOffer</class>
+        <class>com.example.sportcenter.entity.Facility</class>
 
         <properties>
             <property name="jakarta.persistence.jdbc.driver"   value="org.postgresql.Driver"/>
@@ -19,7 +23,7 @@
             <property name="hibernate.show_sql"  value="true"/>
             <property name="hibernate.format_sql" value="true"/>
 
-            <property name="hibernate.hbm2ddl.auto" value="update"/>
+            <property name="hibernate.hbm2ddl.auto" value="create"/>
         </properties>
     </persistence-unit>
 </persistence>

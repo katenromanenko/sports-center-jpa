@@ -1,10 +1,10 @@
 package com.example.sportcenter;
 
 import com.example.sportcenter.config.JpaConfig;
+import com.example.sportcenter.config.HibernateSessionConfig;
 import com.example.sportcenter.entity.*;
-import com.example.sportcenter.repository.session.ClientSessionRepository;
+import com.example.sportcenter.repository.session.EmployeeSessionRepository;
 import com.example.sportcenter.repository.session.FacilitySessionRepository;
-import com.example.sportcenter.repository.session.ServiceOfferSessionRepository;
 import com.example.sportcenter.service.ClientService;
 
 import java.math.BigDecimal;
@@ -20,6 +20,9 @@ public class MainApp {
     public static void main(String[] args) {
         ClientService service = new ClientService();
 
+        // ---------------------------------------------
+        // ДАННЫЕ ДЛЯ НАПОЛНЕНИЯ
+        // ---------------------------------------------
         List<Visitor> visitors = List.of(
                 Visitor.builder()
                         .firstName("Виктор").lastName("Николаюк").birthYear(1992)
@@ -71,6 +74,9 @@ public class MainApp {
                         .build()
         );
 
+        // ---------------------------------------------
+        // СОХРАНЯЕМ КЛИЕНТОВ/СОТРУДНИКОВ
+        // ---------------------------------------------
         visitors.forEach(v -> {
             try {
                 service.add(v); // persist Visitor как Client — ок
@@ -89,6 +95,9 @@ public class MainApp {
             }
         });
 
+        // ---------------------------------------------
+        // ПРОСМОТР ВСЕХ КЛИЕНТОВ
+        // ---------------------------------------------
         System.out.println("\n=== ВСЕ КЛИЕНТЫ (полиморфно) ===");
         service.getAll().forEach(c -> {
             int age = ageFromBirthYear(c.getBirthYear());
@@ -106,53 +115,69 @@ public class MainApp {
             }
         });
 
-        JpaConfig.shutdown();
-
-        var csr = new ClientSessionRepository();
-        System.out.println("Клиент #4 через Session: " + csr.findById(4L).map(Client::getLastName).orElse("не найден"));
-
-        var srepo = new ServiceOfferSessionRepository();
-        srepo.add(ServiceOffer.builder().name("Теннис").price(new BigDecimal("25.00")).build());
-        srepo.add(ServiceOffer.builder().name("Плавание").price(new BigDecimal("18.50")).build());
-        srepo.add(ServiceOffer.builder().name("Футбол").price(new BigDecimal("30.00")).build());
-        System.out.println("Услуги добавлены через Session");
-
+        // ---------------------------------------------
+        // ПОДГОТОВИМ ТРЕНАЖЁРНЫЙ ЗАЛ ДЛЯ П.5
+        // ---------------------------------------------
         var fRepo = new FacilitySessionRepository();
-        var hall1 = fRepo.findByIdentityNumber("GZ-949").orElseGet(() ->
+        var hall1 = fRepo.findByIdentityNumber("GZ-456").orElseGet(() ->
                 fRepo.add(Facility.builder()
                         .name("Тренажёрный зал")
-                        .identityNumber("GZ-098")
-                        .maxCapacity(15)
+                        .identityNumber("GZ-067")
+                        .maxCapacity(15)            // capacity
                         .status(FacilityStatus.ACTIVE)
-                        .hourRate(new BigDecimal("12.00"))
+                        .hourRate(new BigDecimal("15.00")) // цена за час (hourRate)
                         .build())
         );
         System.out.println("Помещение id=" + hall1.getId() + ", инв. номер=" + hall1.getIdentityNumber());
 
-        var copy = fRepo.addCopyWithNewIdentityNumber(hall1.getId(), "GZ-956");
-        System.out.println("Скопированное помещение id=" + copy.getId() + ", инв. номер=" + copy.getIdentityNumber());
+        // ---------------------------------------------
+        // №10 ДЗ (1–5)
+        // ---------------------------------------------
 
-        fRepo.updateHourRate(hall1.getId(), new BigDecimal("15.00"));
-        System.out.println("Стоимость аренды обновлена для id=" + hall1.getId());
-
-        try (var session = com.example.sportcenter.config.HibernateSessionConfig
-                .getSessionFactory().openSession()) {
-
-            var premiums = session.createQuery(
-                            "from Visitor v where v.status = :st", Visitor.class)
-                    .setParameter("st", ClientStatus.PREMIUM)
+        // 1)Выполнить поиск клиента по имени
+        System.out.println("\n=== [ДЗ-1] Поиск клиента по имени (LIKE) ===");
+        try (var session = HibernateSessionConfig.getSessionFactory().openSession()) {
+            var namePart = "op";
+            var found = session.createQuery(
+                            "from Client c " +
+                                    "where lower(c.firstName) like :q or lower(c.lastName) like :q " +
+                                    "order by c.lastName, c.firstName", Client.class)
+                    .setParameter("q", "%" + namePart.toLowerCase() + "%")
                     .list();
-
-            System.out.println("\n=== ПРЕМИУМ-КЛИЕНТЫ ===");
-            premiums.forEach(p -> {
-                var a = p.getAddress();
-                var addr = (a == null) ? "-" :
-                        String.format("%s, %s, %s, %s",
-                                a.getCity(), a.getStreet(), a.getHouseNumber(), a.getPostalCode());
-
-                System.out.printf("%d | %s %s | телефон=%s | потрачено=%s | адрес=%s%n",
-                        p.getId(), p.getFirstName(), p.getLastName(), p.getPhone(), p.getTotalSpent(), addr);
-            });
+            found.forEach(c ->
+                    System.out.printf("Найден: %d | %s %s%n", c.getId(), c.getFirstName(), c.getLastName()));
+            if (found.isEmpty()) System.out.println("Ничего не найдено.");
         }
+
+        // 2) Найти самого высокооплачиваемого сотрудника
+        // 3) Найти сотрудника у которого самая низкая зарплата
+        var empRepo = new EmployeeSessionRepository();
+        System.out.println("\n=== [ДЗ-2] Самый высокооплачиваемый сотрудник ===");
+        empRepo.findMaxSalaryEmployee().ifPresentOrElse(
+                e -> System.out.printf("MAX: %s %s | %s%n", e.getFirstName(), e.getLastName(), e.getSalary()),
+                () -> System.out.println("Сотрудники не найдены")
+        );
+
+        System.out.println("\n=== [ДЗ-3] Самый низкооплачиваемый сотрудник ===");
+        empRepo.findMinSalaryEmployee().ifPresentOrElse(
+                e -> System.out.printf("MIN: %s %s | %s%n", e.getFirstName(), e.getLastName(), e.getSalary()),
+                () -> System.out.println("Сотрудники не найдены")
+        );
+
+        // 4) Реализуйте метод, который будет подсчитывать расходы за период на персонал. (по зарплате в месяц у сотрудников)
+        System.out.println("\n=== [ДЗ-4] Расходы на персонал за период ===");
+        var from = LocalDate.of(LocalDate.now().getYear(), 10, 1); // c 1 октября
+        var to   = LocalDate.of(LocalDate.now().getYear(), 12, 1); // по 1 декабря (полуоткрытый период [from, to) -> 2 месяца)
+        var total = empRepo.payrollForPeriod(from, to);
+        System.out.printf("Период: %s .. %s | Итого: %s%n", from, to, total);
+
+        // 5) Реализовать метод для тренажёрных залов, который будет выводить стоимость за один час на 1 человека.
+        System.out.println("\n=== [ДЗ-5] Цена за 1 час на 1 человека (GYM) ===");
+        fRepo.gymPricePerHourPerPerson(hall1.getId()).ifPresentOrElse(
+                p -> System.out.printf("Facility #%d: %s BYN/чел·час%n", hall1.getId(), p),
+                () -> System.out.println("Не удалось рассчитать (нет capacity или цены)")
+        );
+
+        JpaConfig.shutdown();
     }
 }

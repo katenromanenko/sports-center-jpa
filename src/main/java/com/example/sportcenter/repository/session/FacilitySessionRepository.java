@@ -5,6 +5,8 @@ import com.example.sportcenter.entity.Facility;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Optional;
 
 public class FacilitySessionRepository {
@@ -67,6 +69,28 @@ public class FacilitySessionRepository {
                 f.setHourRate(newRate);              // UPDATE произойдёт на commit
             }
             tx.commit();
+        }
+    }
+
+    public Optional<BigDecimal> gymPricePerHourPerPerson(Long facilityId) {
+        try (var session = HibernateSessionConfig.getSessionFactory().openSession()) {
+            Object[] row = session.createQuery(
+                            "select f.hourRate, f.maxCapacity " +
+                                    "from Facility f " +
+                                    "where f.id = :id", Object[].class)
+                    .setParameter("id", facilityId)
+                    .uniqueResult();
+
+            if (row == null) return Optional.empty();
+
+            BigDecimal hourRate = (BigDecimal) row[0];
+            Number cap = (Number) row[1];
+
+            if (hourRate == null || cap == null || cap.intValue() <= 0) return Optional.empty();
+
+            return Optional.of(
+                    hourRate.divide(BigDecimal.valueOf(cap.intValue()), 2, RoundingMode.HALF_UP)
+            );
         }
     }
 

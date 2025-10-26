@@ -25,6 +25,9 @@
         <mapping class="com.example.sportcenter.entity.Employee"/>
         <mapping class="com.example.sportcenter.entity.ServiceOffer"/>
         <mapping class="com.example.sportcenter.entity.Facility"/>
+        <mapping class="com.example.sportcenter.entity.Visit"/>
+        <mapping class="com.example.sportcenter.entity.Reservation"/>
+
 
 
     </session-factory>

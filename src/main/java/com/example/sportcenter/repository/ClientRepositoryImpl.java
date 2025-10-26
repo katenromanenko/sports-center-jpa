@@ -8,6 +8,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 
 import java.util.List;
+import java.util.Optional;
 
 public class ClientRepositoryImpl implements ClientRepository {
 
@@ -73,6 +74,39 @@ public class ClientRepositoryImpl implements ClientRepository {
             }
         }
     }
+
+    @Override
+    public List<Client> findByName(String namePart) {
+        try (EntityManager em = JpaConfig.getEmf().createEntityManager()) {
+            return em.createQuery(
+                            "select c from Client c " +
+                                    "where lower(c.firstName) like lower(concat('%', :q, '%')) " +
+                                    "   or lower(c.lastName)  like lower(concat('%', :q, '%')) " +
+                                    "order by c.lastName, c.firstName",
+                            Client.class
+                    )
+                    .setParameter("q", namePart == null ? "" : namePart.trim())
+                    .getResultList();
+        }
+    }
+
+    @Override
+    public Optional<Client> findByExactName(String name) {
+        try (EntityManager em = JpaConfig.getEmf().createEntityManager()) {
+            String q = (name == null ? "" : name.trim().replaceAll("\\s+", " "));
+            var list = em.createQuery(
+                            "select c from Client c " +
+                                    "where lower( concat( concat(c.firstName, ' '), c.lastName) ) = lower(:q)",
+                            Client.class
+                    )
+                    .setParameter("q", q)
+                    .setMaxResults(1)
+                    .getResultList();
+            return list.stream().findFirst();
+        }
+    }
+
+
 
 }
 

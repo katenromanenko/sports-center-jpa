@@ -6,6 +6,7 @@ import com.example.sportcenter.entity.*;
 import com.example.sportcenter.repository.criteria.CriteriaHomeworkRepository;
 import com.example.sportcenter.repository.session.EmployeeSessionRepository;
 import com.example.sportcenter.repository.session.FacilitySessionRepository;
+import com.example.sportcenter.service.CacheHomeworkService;
 import com.example.sportcenter.service.ClientService;
 
 import java.math.BigDecimal;
@@ -16,6 +17,47 @@ public class MainApp {
 
     private static int ageFromBirthYear(Integer birthYear) {
         return (birthYear == null) ? 0 : LocalDate.now().getYear() - birthYear;
+    }
+
+    private static long prepareActivitiesForCacheDemo() {
+        try (var em = JpaConfig.getEmf().createEntityManager()) {
+            var tx = em.getTransaction();
+            try {
+                tx.begin();
+
+                Long count = em.createQuery("select count(s) from ServiceOffer s", Long.class)
+                        .getSingleResult();
+
+                ServiceOffer sample;
+                if (count == null || count == 0) {
+                    System.out.println("Создаём две активности.");
+                    ServiceOffer yoga = ServiceOffer.builder()
+                            .name("Йога")
+                            .price(new BigDecimal("15.00"))
+                            .build();
+                    ServiceOffer boxing = ServiceOffer.builder()
+                            .name("Бокс")
+                            .price(new BigDecimal("18.00"))
+                            .build();
+                    em.persist(yoga);
+                    em.persist(boxing);
+                    sample = yoga;
+                } else {
+                    System.out.println("Активности уже есть — берём первую попавшуюся.");
+                    sample = em.createQuery("select s from ServiceOffer s order by s.id", ServiceOffer.class)
+                            .setMaxResults(1)
+                            .getSingleResult();
+                }
+
+                tx.commit();
+                return sample.getId();
+            } catch (RuntimeException ex) {
+                if (tx.isActive()) {
+                    tx.rollback();
+                }
+                throw ex;
+            }
+        }
     }
 
     public static void main(String[] args) {
@@ -218,6 +260,18 @@ public class MainApp {
                             (v.getBirthYear() == null ? 0 : LocalDate.now().getYear() - v.getBirthYear()))
             );
         }
+
+        // =====================================================================
+
+        // =====================================================================
+        // === №13 ДЗ (Кэш Hibernate)                                        ===
+        // =====================================================================
+        System.out.println("\n=== [CACHE] Готовим данные для кэша ===");
+        long activityIdForCache = prepareActivitiesForCacheDemo();
+
+        var cacheService = new CacheHomeworkService();
+        cacheService.demoFirstLevelCache();
+        cacheService.demoSecondLevelCache(activityIdForCache);
 
         // =====================================================================
 

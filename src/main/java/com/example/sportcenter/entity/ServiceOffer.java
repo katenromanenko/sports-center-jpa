@@ -2,12 +2,16 @@ package com.example.sportcenter.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Cache;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "service_offers")
+@Cacheable
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region = "serviceOfferRegion")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class ServiceOffer {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

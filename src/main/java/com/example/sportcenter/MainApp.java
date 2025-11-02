@@ -3,6 +3,7 @@ package com.example.sportcenter;
 import com.example.sportcenter.config.JpaConfig;
 import com.example.sportcenter.config.HibernateSessionConfig;
 import com.example.sportcenter.entity.*;
+import com.example.sportcenter.repository.criteria.CriteriaHomeworkRepository;
 import com.example.sportcenter.repository.session.EmployeeSessionRepository;
 import com.example.sportcenter.repository.session.FacilitySessionRepository;
 import com.example.sportcenter.service.ClientService;
@@ -122,7 +123,7 @@ public class MainApp {
         var hall1 = fRepo.findByIdentityNumber("GZ-456").orElseGet(() ->
                 fRepo.add(Facility.builder()
                         .name("Тренажёрный зал")
-                        .identityNumber("GZ-067")
+                        .identityNumber("GZ-456")
                         .maxCapacity(15)            // capacity
                         .status(FacilityStatus.ACTIVE)
                         .hourRate(new BigDecimal("15.00")) // цена за час (hourRate)
@@ -177,6 +178,48 @@ public class MainApp {
                 p -> System.out.printf("Facility #%d: %s BYN/чел·час%n", hall1.getId(), p),
                 () -> System.out.println("Не удалось рассчитать (нет capacity или цены)")
         );
+
+        // =====================================================================
+        // === №11 ДЗ (Criteria API)                                         ===
+        // =====================================================================
+                var criteriaRepo = new CriteriaHomeworkRepository();
+
+        // [CR-1] Все сотрудники (Criteria)
+                System.out.println("\n=== [CR-1] Все сотрудники (Criteria) ===");
+                criteriaRepo.findAllEmployees()
+                        .forEach(e -> System.out.printf("%d | %s %s | должность=%s | зарплата=%s%n",
+                                e.getId(), e.getFirstName(), e.getLastName(), e.getPosition(), e.getSalary()));
+
+        // [CR-2] Самая дешёвая активность (Criteria)
+                System.out.println("\n=== [CR-2] Самая дешёвая активность (Criteria) ===");
+                criteriaRepo.findCheapestActivity().ifPresentOrElse(
+                        a -> System.out.printf("Минимальная цена: %s — %s%n", a.getName(), a.getPrice()),
+                        () -> System.out.println("Активности не найдены")
+                );
+
+        // [CR-3] Суммарная вместимость помещений (Criteria)
+                System.out.println("\n=== [CR-3] Суммарная вместимость помещений (Criteria) ===");
+                long totalCap = criteriaRepo.totalFacilityCapacity();
+                System.out.println("Итого мест одновременно в комплексе: " + totalCap);
+
+        // [CR-4] Пользователи по диапазону возраста (Criteria)
+                System.out.println("\n=== [CR-4] Посетители по возрасту (Criteria) ===");
+                int minAge = 25;
+                int maxAge = 35;
+
+        var visitorsByAge = criteriaRepo.findVisitorsByAgeBetween_birthYear(minAge, maxAge);
+
+        if (visitorsByAge.isEmpty()) {
+            System.out.println("Никого в заданном диапазоне.");
+        } else {
+            visitorsByAge.forEach(v ->
+                    System.out.printf("%d | %s %s | возраст=%d%n",
+                            v.getId(), v.getFirstName(), v.getLastName(),
+                            (v.getBirthYear() == null ? 0 : LocalDate.now().getYear() - v.getBirthYear()))
+            );
+        }
+
+        // =====================================================================
 
         JpaConfig.shutdown();
     }

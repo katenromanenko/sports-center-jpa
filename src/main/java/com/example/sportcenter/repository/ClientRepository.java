@@ -11,5 +11,11 @@ public interface ClientRepository {
     List<Client> findAll();
     void deleteById(Long id);
     void updateStatus(Long id, ClientStatus newStatus);
+
+    //1) Выполнить поиск клиента по имени
+    List<Client> findByName(String name);
+    Optional<Client> findByExactName(String name);
+
+
 }
 
